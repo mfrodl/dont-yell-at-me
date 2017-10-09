@@ -1,30 +1,57 @@
-var elements = document.getElementsByTagName('*');
+// Total number of replacements on a page, shown in the badge
 var replacements = 0;
 
-for (let element of elements) {
-  // Do not perform replacement inside scripts
-  if (element.tagName == 'SCRIPT') {
-    continue;
-  }
+// Regular expression matching two or more exclamation marks
+const YELLING = /!{2,}/g;
 
-  for (let node of element.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      var text = node.nodeValue;
+// Function to remove extra exclamation marks
+function shutUp() {
+  var elements = document.getElementsByTagName('*');
 
-      // Replace two or more consecutive exclamation marks with a single one;
-      // keep track or the number of replacements
-      var replacedText = text.replace(/!{2,}/g, function() {
-        replacements++;
-        return '!';
-      });
+  for (let element of elements) {
+    // Do not perform replacement inside scripts
+    if (element.tagName == 'SCRIPT') {
+      continue;
+    }
 
-      // If a replacement occurred, modify the DOM accordingly and update the
-      // badge to show the total number of replacements
-      if (replacedText !== text) {
-        element.replaceChild(document.createTextNode(replacedText), node);
-        chrome.runtime.sendMessage({replacements: replacements.toString()});
+    for (let node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        var text = node.nodeValue;
+
+        // Replace two or more consecutive exclamation marks with a single one;
+        // keep track or the number of replacements
+        var replacedText = text.replace(YELLING, function() {
+          replacements++;
+          return '!';
+        });
+
+        // If a replacement occurred, modify the DOM accordingly and update the
+        // badge to show the total number of replacements
+        if (replacedText !== text) {
+          element.replaceChild(document.createTextNode(replacedText), node);
+          chrome.runtime.sendMessage({replacements: replacements.toString()});
+        }
       }
     }
   }
 }
 
+// Remove exclamation marks as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', shutUp);
+
+// Observe DOM mutations to remove dynamically added exclamation marks
+var observer = new MutationObserver(function(mutations) {
+  mutations.forEach(function(mutation) {
+    if (YELLING.test(mutation.target.innerText)) {
+      shutUp();
+    }
+  });
+});
+
+var config = {
+  childList: true,
+  characterData: true,
+  subtree: true
+};
+
+observer.observe(document.body, config);
