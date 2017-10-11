@@ -3,7 +3,7 @@
   "name": "Don't Yell At Me",
   "short_name": "Don't Yell",
   "description": "Remove unnecessary exclamation marks from web pages",
-  "version": "0.1",
+  "version": "0.1.1",
   "author": "Martin Frodl",
   "browser_action": {
     "default_icon": "icon16.png"
