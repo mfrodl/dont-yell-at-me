@@ -1,8 +1,10 @@
 // Total number of replacements on a page, shown in the badge
 var replacements = 0;
 
-// Regular expression matching two or more exclamation marks
+// Regular expressions
 const YELLING = /!{2,}/g;
+const QUESTION = /(!+\?|\?[?!])[?!]*/g;
+const SYMBOLS = /[?!]{2,}/g;
 
 // Function to remove extra exclamation marks
 function shutUp() {
@@ -25,6 +27,11 @@ function shutUp() {
           return '!';
         });
 
+        var replacedText = replacedText.replace(QUESTION, function() {
+          replacements++;
+          return '?';
+        });
+
         // If a replacement occurred, modify the DOM accordingly and update the
         // badge to show the total number of replacements
         if (replacedText !== text) {
@@ -42,7 +49,7 @@ document.addEventListener('DOMContentLoaded', shutUp);
 // Observe DOM mutations to remove dynamically added exclamation marks
 var observer = new MutationObserver(function(mutations) {
   mutations.forEach(function(mutation) {
-    if (YELLING.test(mutation.target.innerText)) {
+    if (SYMBOLS.test(mutation.target.innerText)) {
       shutUp();
     }
   });
